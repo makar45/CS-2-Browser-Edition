@@ -3,1009 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS2 Browser - Global Offensive</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Standoff 2 - Главное меню</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: #0c0f12; color: white; user-select: none; }
-        canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; outline: none; }
-        
-        .cs-panel { background: rgba(18, 22, 28, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        
-        /* ПЕРЕКРЕСТИЕ (КРОССХЕЙР) */
-        #crosshair {
-            position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); pointer-events: none; z-index: 200; display: none; align-items: center; justify-content: center;
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e; /* Тёмный фон */
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* Временный фон, позже можно заменить на картинку или 3D-сцену */
+            background-image: radial-gradient(circle, #2a2a4e 0%, #000000 100%);
         }
-        .ch-dot { width: 3px; height: 3px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 2px #000; }
-        .ch-line { background: #00ff00; position: absolute; box-shadow: 0 0 2px #000; transition: transform 0.1s; }
-        .ch-v { width: 2px; height: 8px; } .ch-h { width: 8px; height: 2px; }
-        #ch-t { top: -2px; } #ch-b { bottom: -2px; } #ch-l { left: -2px; } #ch-r { right: -2px; }
 
-        /* ИНДИКАТОРЫ УРОНА И ПОПАДАНИЯ */
-        .damage-indicator { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(circle, transparent 20%, rgba(255,0,0,0.7) 100%); opacity: 0; transition: opacity 0.15s; z-index: 50; }
-        .hit-marker { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; transform: translate(-50%, -50%); pointer-events: none; z-index: 201; opacity: 0; }
-        .hit-marker line { stroke: white; stroke-width: 3; }
-        @keyframes popHit { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
+        .screen {
+            display: none; /* Скрываем все экраны по умолчанию */
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
+            width: 400px;
+            backdrop-filter: blur(5px);
+        }
 
-        /* АНИМАЦИЯ КЕЙСОВ */
-        .case-window { position: relative; width: 100%; height: 160px; background: #0a0a0c; border: 2px solid #222; border-radius: 8px; overflow: hidden; }
-        .case-marker { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: #ffcc00; z-index: 10; transform: translateX(-50%); box-shadow: 0 0 20px #ffcc00; }
-        .case-reel { display: flex; height: 100%; transition: transform 6s cubic-bezier(0.1, 0, 0.05, 1); padding-left: calc(50% - 75px); }
-        .case-item { width: 150px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border-right: 1px solid #222; background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%); border-bottom: 6px solid; }
+        .active {
+            display: block; /* Показываем только активный экран */
+        }
 
-        /* ЦВЕТА РЕДКОСТИ */
-        .rarity-mil-spec { border-bottom-color: #4b69ff !important; color: #4b69ff; }
-        .rarity-restricted { border-bottom-color: #8847ff !important; color: #8847ff; }
-        .rarity-classified { border-bottom-color: #d32ee6 !important; color: #d32ee6; }
-        .rarity-covert { border-bottom-color: #eb4b4b !important; color: #eb4b4b; }
-        .rarity-gold { border-bottom-color: #ffd700 !important; color: #ffd700; background: linear-gradient(180deg, rgba(255,215,0,0.1) 0%, #0d0d0d 100%); }
+        h1 {
+            color: #ff9f1c; /* Оранжевый акцент */
+            margin-bottom: 30px;
+            font-size: 34px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px #000;
+        }
 
-        /* КАСТОМНЫЙ СКРОЛЛБАР */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0a0a0c; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        h2 {
+            color: #ffffff;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #2b2d42;
+            color: white;
+            border: 2px solid #2b2d42;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .menu-btn:hover {
+            background-color: #ff9f1c;
+            border-color: #ff9f1c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 159, 28, 0.3);
+        }
+
+        .menu-btn:active {
+            transform: scale(0.98);
+        }
+
+        .back-btn {
+            background-color: #555;
+            border-color: #555;
+            margin-top: 30px;
+        }
+
+        .back-btn:hover {
+            background-color: #777;
+            border-color: #777;
+        }
+        
+        .content-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 100px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <div id="game-ui"></div>
-    <div id="damage-flash" class="damage-indicator"></div>
-    <div id="hit-marker" class="hit-marker">
-        <svg viewBox="0 0 100 100"><line x1="20" y1="20" x2="40" y2="40"/><line x1="80" y1="20" x2="60" y2="40"/><line x1="20" y1="80" x2="40" y2="60"/><line x1="80" y1="80" x2="60" y2="60"/></svg>
+    <!-- Экран: Главное меню -->
+    <div id="main-menu" class="screen active">
+        <h1>Standoff 2</h1>
+        <button class="menu-btn" onclick="showScreen('mode-selection')">Играть</button>
+        <button class="menu-btn" onclick="showScreen('inventory-screen')">Инвентарь</button>
+        <button class="menu-btn" onclick="showScreen('shop-screen')">Магазин</button>
     </div>
 
-    <!-- КРОССХЕЙР -->
-    <div id="crosshair">
-        <div class="ch-dot"></div>
-        <div id="ch-t" class="ch-line ch-v"></div>
-        <div id="ch-b" class="ch-line ch-v"></div>
-        <div id="ch-l" class="ch-line ch-h"></div>
-        <div id="ch-r" class="ch-line ch-h"></div>
+    <!-- Экран: Выбор режима -->
+    <div id="mode-selection" class="screen">
+        <h2>Выберите режим</h2>
+        <button class="menu-btn" onclick="alert('Подключение к серверу: Командный бой 5х5...')">Бой 5 на 5</button>
+        <button class="menu-btn" onclick="alert('Подключение к серверу: Дуэль 2х2...')">Дуэль 2 на 2</button>
+        <button class="menu-btn back-btn" onclick="showScreen('main-menu')">Назад</button>
     </div>
 
-    <!-- ГЛАВНОЕ МЕНЮ -->
-    <div id="main-menu" class="fixed inset-0 z-[100] bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2500')] bg-cover bg-center flex items-center justify-center pointer-events-auto">
-        <div class="absolute inset-0 bg-black/85 backdrop-blur-sm"></div>
-        
-        <div class="relative z-10 w-full max-w-[1400px] flex gap-10 p-10 h-[85vh]">
-            <!-- ЛЕВАЯ ПАНЕЛЬ: НАВИГАЦИЯ -->
-            <div class="w-1/3 flex flex-col justify-between">
-                <div>
-                    <h1 class="text-[140px] leading-none font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-orange-400 to-red-600 drop-shadow-2xl">CS2</h1>
-                    <p class="text-sm tracking-[0.5em] text-white/50 font-bold uppercase ml-2 border-b border-white/10 pb-4">Global Offensive Web</p>
-                </div>
-                
-                <div class="space-y-4">
-                    <button type="button" onclick="startGame('bots')" class="w-full py-6 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black font-black text-3xl italic uppercase rounded shadow-[0_0_20px_rgba(234,88,12,0.4)] transition-all transform hover:scale-[1.02]">
-                        Бой с ботами
-                    </button>
-
-                    <button type="button" onclick="openLobby()" class="w-full py-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black text-2xl italic uppercase rounded shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all transform hover:scale-[1.02]">
-                        Сетевая игра
-                    </button>
-
-                    <div class="grid grid-cols-2 gap-4 pt-4">
-                        <button type="button" onclick="toggleTab('market')" class="py-5 cs-panel hover:bg-white/10 font-bold uppercase tracking-widest text-xs transition-colors">Рынок</button>
-                        <button type="button" onclick="toggleTab('inv')" class="py-5 cs-panel hover:bg-white/10 font-bold uppercase tracking-widest text-xs transition-colors">Инвентарь</button>
-                    </div>
-                    <button type="button" onclick="toggleTab('cases')" class="w-full py-5 cs-panel border-b-2 border-orange-500 hover:bg-orange-500/20 font-black uppercase italic tracking-widest transition-colors">Кейсы</button>
-                </div>
-            </div>
-
-            <!-- ПРАВАЯ ПАНЕЛЬ: КОНТЕНТ -->
-            <div class="flex-1 cs-panel relative overflow-hidden flex flex-col p-10 border border-white/10 shadow-2xl">
-                <!-- Вкладка: Приветствие -->
-                <div id="tab-welcome" class="flex flex-col items-center justify-center h-full text-center space-y-6">
-                    <div class="text-8xl animate-bounce">🎯</div>
-                    <h2 class="text-4xl font-black italic uppercase tracking-tighter">Штаб-квартира</h2>
-                    <p class="text-slate-400 max-w-md">Выбирайте режим игры, закупайте уникальные скины на рынке или испытывайте удачу в кейсах.</p>
-                </div>
-
-                <!-- Вкладка: Рынок -->
-                <div id="tab-market" class="hidden h-full flex flex-col">
-                    <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                        <h2 class="text-3xl font-black italic uppercase">Торговая площадка</h2>
-                        <div class="text-2xl font-black text-green-400 italic">Баланс: $<span id="menu-balance">5000</span></div>
-                    </div>
-                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto pr-2" id="market-list"></div>
-                </div>
-
-                <!-- Вкладка: Инвентарь -->
-                <div id="tab-inv" class="hidden h-full flex flex-col">
-                    <h2 class="text-3xl font-black italic uppercase border-b border-white/10 pb-4 mb-8">Ваша коллекция</h2>
-                    <div class="grid grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto pr-2" id="inv-list"></div>
-                </div>
-
-                <!-- Вкладка: Кейсы -->
-                <div id="tab-cases" class="hidden h-full flex flex-col items-center justify-center space-y-12">
-                    <div class="text-center">
-                        <h2 class="text-5xl font-black italic uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 drop-shadow">Chroma Case</h2>
-                        <p class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mt-2">Возможен крайне редкий предмет!</p>
-                    </div>
-                    
-                    <div class="case-window">
-                        <div class="case-marker"></div>
-                        <div id="case-reel" class="case-reel"></div>
-                    </div>
-
-                    <button type="button" id="spin-btn" onclick="openCase()" class="px-20 py-6 bg-orange-600 hover:bg-orange-500 text-black font-black text-2xl uppercase italic skew-x-[-10deg] transition-all shadow-[0_0_30px_rgba(234,88,12,0.3)] disabled:opacity-50 disabled:cursor-not-allowed">
-                        Открыть за $250
-                    </button>
-                </div>
-
-                <!-- Вкладка: Лобби (Сетевая игра) -->
-                <div id="tab-lobby" class="hidden h-full flex flex-col items-center justify-center space-y-10 px-10">
-                    <h2 class="text-5xl font-black italic uppercase text-blue-500">Сетевое Лобби</h2>
-                    
-                    <div class="w-full bg-black/50 p-8 rounded-xl border border-white/5 text-center">
-                        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">Ваш уникальный ID сервера:</p>
-                        <div id="my-peer-id" class="text-4xl font-mono text-orange-400 font-bold select-all bg-black/80 py-4 rounded border border-white/10">ГЕНЕРАЦИЯ...</div>
-                        <p class="text-slate-500 text-[10px] uppercase mt-4">Отправьте этот код другу для подключения</p>
-                    </div>
-
-                    <div class="w-full flex items-center gap-4">
-                        <div class="h-px bg-white/10 flex-1"></div>
-                        <div class="text-slate-500 font-bold uppercase text-xs">ИЛИ</div>
-                        <div class="h-px bg-white/10 flex-1"></div>
-                    </div>
-
-                    <div class="w-full space-y-4">
-                        <input type="text" id="friend-id-input" placeholder="Введите ID друга сюда..." class="w-full bg-black/50 p-6 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-center font-mono text-2xl text-blue-400 font-bold placeholder-slate-600 transition-colors">
-                        <button type="button" onclick="connectToPeer()" class="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white font-black text-2xl italic uppercase rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)]">Подключиться и Играть</button>
-                    </div>
-                </div>
-            </div>
+    <!-- Экран: Инвентарь -->
+    <div id="inventory-screen" class="screen">
+        <h2>Инвентарь</h2>
+        <div class="content-box">
+            <p>Здесь будут отображаться твои скины, ножи и оружие.</p>
         </div>
+        <button class="menu-btn back-btn" onclick="showScreen('main-menu')">Назад</button>
     </div>
 
-    <!-- ВНУТРИИГРОВОЙ МАГАЗИН (НА КЛАВИШУ B) -->
-    <div id="ingame-shop" class="hidden fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center">
-        <div class="cs-panel p-10 w-full max-w-5xl">
-            <div class="flex justify-between items-end border-b border-white/10 pb-6 mb-8">
-                <div>
-                    <h2 class="text-5xl font-black italic uppercase">Закупка</h2>
-                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Выберите снаряжение для текущего раунда</p>
-                </div>
-                <div class="text-5xl font-black text-green-500 italic">$<span id="shop-balance">0</span></div>
-            </div>
-            
-            <div class="grid grid-cols-3 gap-8">
-                <!-- Оружие -->
-                <div class="col-span-2 space-y-4">
-                    <h3 class="text-orange-500 font-black uppercase text-xs tracking-[0.2em] mb-4">Штурмовые винтовки и Снайперские</h3>
-                    <button type="button" onclick="buyWeapon('AK47', 2700)" class="w-full p-6 bg-black/40 hover:bg-orange-500/20 border border-white/5 rounded-xl flex justify-between items-center group transition-colors">
-                        <div class="text-left"><div class="font-black italic text-2xl uppercase">AK-47</div><div class="text-[10px] text-slate-500 uppercase font-bold mt-1">Урон: 36 | Темп: Высокий</div></div>
-                        <span class="text-green-400 font-black text-2xl">$2700</span>
-                    </button>
-                    <button type="button" onclick="buyWeapon('M4A4', 3100)" class="w-full p-6 bg-black/40 hover:bg-blue-500/20 border border-white/5 rounded-xl flex justify-between items-center group transition-colors">
-                        <div class="text-left"><div class="font-black italic text-2xl uppercase text-blue-400">M4A4</div><div class="text-[10px] text-slate-500 uppercase font-bold mt-1">Урон: 33 | Точность: Высокая</div></div>
-                        <span class="text-green-400 font-black text-2xl">$3100</span>
-                    </button>
-                    <button type="button" onclick="buyWeapon('AWP', 4750)" class="w-full p-6 bg-black/40 hover:bg-green-500/20 border border-white/5 rounded-xl flex justify-between items-center group transition-colors">
-                        <div class="text-left"><div class="font-black italic text-2xl uppercase text-green-500">AWP</div><div class="text-[10px] text-slate-500 uppercase font-bold mt-1">Урон: 450 | Темп: Низкий (Ваншот)</div></div>
-                        <span class="text-green-400 font-black text-2xl">$4750</span>
-                    </button>
-                    <h3 class="text-orange-500 font-black uppercase text-xs tracking-[0.2em] mb-4 mt-6">Пистолеты</h3>
-                    <button type="button" onclick="buyWeapon('DEAGLE', 700)" class="w-full p-6 bg-black/40 hover:bg-slate-500/30 border border-white/5 rounded-xl flex justify-between items-center group transition-colors">
-                        <div class="text-left"><div class="font-black italic text-xl uppercase">Desert Eagle</div></div>
-                        <span class="text-green-400 font-black text-xl">$700</span>
-                    </button>
-                </div>
-
-                <!-- Снаряжение -->
-                <div class="space-y-4">
-                    <h3 class="text-blue-400 font-black uppercase text-xs tracking-[0.2em] mb-4">Снаряжение</h3>
-                    <button type="button" onclick="buyGear('armor', 1000)" class="w-full p-6 bg-black/40 hover:bg-blue-500/20 border border-white/5 rounded-xl flex flex-col justify-center items-center text-center gap-2 group transition-colors">
-                        <div class="font-black italic text-xl uppercase">Броня + Шлем</div>
-                        <span class="text-green-400 font-black text-lg">$1000</span>
-                    </button>
-                    <button type="button" onclick="buyGear('health', 500)" class="w-full p-6 bg-black/40 hover:bg-red-500/20 border border-white/5 rounded-xl flex flex-col justify-center items-center text-center gap-2 group transition-colors">
-                        <div class="font-black italic text-xl uppercase text-red-400">Аптечка (100 HP)</div>
-                        <span class="text-green-400 font-black text-lg">$500</span>
-                    </button>
-                    <button type="button" onclick="buyGear('ammo', 200)" class="w-full p-6 bg-black/40 hover:bg-yellow-500/20 border border-white/5 rounded-xl flex flex-col justify-center items-center text-center gap-2 group transition-colors">
-                        <div class="font-black italic text-xl uppercase text-yellow-500">Патроны (+90)</div>
-                        <span class="text-green-400 font-black text-lg">$200</span>
-                    </button>
-                </div>
-            </div>
-
-            <button type="button" onclick="closeShop()" class="w-full mt-10 py-5 bg-white text-black font-black text-xl uppercase italic rounded hover:bg-slate-200 transition-colors shadow-lg">Закрыть магазин [ESC / B]</button>
+    <!-- Экран: Магазин -->
+    <div id="shop-screen" class="screen">
+        <h2>Магазин</h2>
+        <div class="content-box">
+            <p>Здесь можно будет открывать кейсы и покупать валюту.</p>
         </div>
+        <button class="menu-btn back-btn" onclick="showScreen('main-menu')">Назад</button>
     </div>
 
-    <!-- ВНУТРИИГРОВОЙ HUD -->
-    <div id="hud" class="hidden fixed inset-0 z-20 pointer-events-none p-8 flex flex-col justify-between">
-        <div class="flex justify-between items-start">
-            <div class="cs-panel px-6 py-3 border-l-4 border-orange-500 flex items-center gap-3">
-                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
-                <div id="server-status" class="font-black italic text-lg uppercase tracking-widest text-slate-300">SERVER: BOT MATCH</div>
-            </div>
-            <div id="kill-feed" class="flex flex-col gap-2 items-end"></div>
-        </div>
-
-        <div class="flex justify-between items-end">
-            <div class="flex gap-4">
-                <div class="cs-panel px-8 py-4 border-l-8 border-orange-500 min-w-[160px]">
-                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Здоровье</span>
-                    <span id="hp-hud" class="text-6xl font-black italic tracking-tighter drop-shadow-md">100</span>
-                </div>
-                <div class="cs-panel px-6 py-4 border-l-8 border-blue-500 min-w-[120px]">
-                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Броня</span>
-                    <span id="armor-hud" class="text-4xl font-black italic text-blue-400 mt-2 block">0</span>
-                </div>
-                <div class="cs-panel px-6 py-4 border-l-8 border-green-500 min-w-[160px] flex flex-col justify-end">
-                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Баланс</span>
-                    <span class="text-4xl font-black text-green-500 italic mt-2 block">$<span id="cash-hud">5000</span></span>
-                </div>
-            </div>
-
-            <div class="text-right flex flex-col items-end gap-2">
-                <div class="bg-black/50 px-4 py-1 rounded border border-white/10 text-xs font-bold uppercase tracking-widest text-slate-400">
-                    [B] Магазин | [M] Меню | [R] Перезарядка
-                </div>
-                <div class="cs-panel px-10 py-6 border-r-8 border-orange-500 min-w-[250px]">
-                    <div id="wep-name-hud" class="text-sm font-black text-orange-500 uppercase mb-2 tracking-widest">AK-47 | SLATE</div>
-                    <div class="text-7xl font-black italic tracking-tighter leading-none drop-shadow-lg">
-                        <span id="ammo-hud">30</span><span class="text-3xl text-slate-500 ml-2">/ <span id="res-hud">90</span></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ЛОГИКА ИГРЫ И ДВИЖКА -->
     <script>
-        // --- ДАННЫЕ ОРУЖИЯ И СКИНОВ ---
-        const WEAPONS = {
-            AK47: { name: 'AK-47', damage: 36, clip: 30, res: 90, rate: 100, recoil: 0.02, color: '#2b2b2b', model: 'assault' },
-            M4A4: { name: 'M4A4', damage: 33, clip: 30, res: 90, rate: 90, recoil: 0.012, color: '#3a3a40', model: 'assault' },
-            AWP: { name: 'AWP', damage: 450, clip: 10, res: 30, rate: 1400, recoil: 0.1, color: '#1a2a1a', model: 'sniper' },
-            DEAGLE: { name: 'Desert Eagle', damage: 65, clip: 7, res: 35, rate: 450, recoil: 0.05, color: '#555555', model: 'pistol' }
-        };
-
-        const SKINS = [
-            { id: 'ak_bs', name: 'AK-47 | Bloodsport', rarity: 'covert', price: 5400, color: '#eb4b4b', type: 'AK47' },
-            { id: 'ak_as', name: 'AK-47 | Asiimov', rarity: 'covert', price: 6000, color: '#eb4b4b', type: 'AK47' },
-            { id: 'm4_ho', name: 'M4A4 | Howl', rarity: 'covert', price: 15000, color: '#eb4b4b', type: 'M4A4' },
-            { id: 'awp_dl', name: 'AWP | Dragon Lore', rarity: 'gold', price: 90000, color: '#ffd700', type: 'AWP' },
-            { id: 'de_pr', name: 'Deagle | Printstream', rarity: 'classified', price: 3200, color: '#d32ee6', type: 'DEAGLE' },
-            { id: 'ak_sl', name: 'AK-47 | Slate', rarity: 'restricted', price: 800, color: '#8847ff', type: 'AK47' },
-            { id: 'm4_dm', name: 'M4A4 | Desolate Space', rarity: 'classified', price: 2100, color: '#d32ee6', type: 'M4A4' },
-            { id: 'awp_aw', name: 'AWP | Atheris', rarity: 'restricted', price: 1500, color: '#8847ff', type: 'AWP' }
-        ];
-
-        // --- СОСТОЯНИЕ ИГРОКА ---
-        let player = {
-            hp: 100, armor: 0, cash: 10000,
-            inventory: [SKINS[5]], // Начинаем с AK Slate
-            equipped: { AK47: SKINS[5], M4A4: null, AWP: null, DEAGLE: null },
-            currentWeapon: 'AK47',
-            ammo: 30, reserve: 90
-        };
-
-        // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДВИЖКА ---
-        let scene, camera, renderer, world, clock;
-        let playerBody, weaponGroup, muzzleFlash;
-        let keys = {}, isRunning = false, isShopOpen = false, isMultiplayer = false;
-        let bots = [], remotePlayers = {}, tracers = [];
-        let lastShootTime = 0, crosshairExpansion = 0;
-        let peer, conn;
-
-        // --- ГЕНЕРАТОР ПРОЦЕДУРНЫХ ТЕКСТУР ---
-        function createTexture(type) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 512;
-            const ctx = canvas.getContext('2d');
+        // Функция для переключения экранов
+        function showScreen(screenId) {
+            // Находим все элементы с классом 'screen'
+            const screens = document.querySelectorAll('.screen');
             
-            if(type === 'concrete') {
-                ctx.fillStyle = '#6b7280'; ctx.fillRect(0,0,512,512);
-                for(let i=0; i<20000; i++) {
-                    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-                    ctx.fillRect(Math.random()*512, Math.random()*512, 2, 2);
-                }
-            } else if(type === 'sand') {
-                ctx.fillStyle = '#d2b48c'; ctx.fillRect(0,0,512,512);
-                for(let i=0; i<15000; i++) {
-                    ctx.fillStyle = 'rgba(139,69,19,0.1)';
-                    ctx.fillRect(Math.random()*512, Math.random()*512, 3, 3);
-                }
-            } else if(type === 'crate') {
-                ctx.fillStyle = '#8b5a2b'; ctx.fillRect(0,0,512,512);
-                ctx.strokeStyle = '#5c3a21'; ctx.lineWidth = 10;
-                ctx.strokeRect(10,10,492,492);
-                ctx.beginPath(); ctx.moveTo(10,10); ctx.lineTo(502,502); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(502,10); ctx.lineTo(10,502); ctx.stroke();
-            } else if(type === 'grid') {
-                ctx.fillStyle = '#1f2937'; ctx.fillRect(0,0,512,512);
-                ctx.strokeStyle = '#111827'; ctx.lineWidth = 4;
-                for(let i=0; i<=512; i+=64) {
-                    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,512); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(512,i); ctx.stroke();
-                }
-            }
-
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-            return tex;
-        }
-
-        // --- ИНИЦИАЛИЗАЦИЯ ДВИЖКА (ВЫЗЫВАЕТСЯ ПРИ СТАРТЕ) ---
-        function initEngine() {
-            if (scene) return; // Защита от двойной инициализации
-            
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB); // Небо
-            scene.fog = new THREE.Fog(0x87CEEB, 30, 200);
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.rotation.order = 'YXZ';
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.getElementById('game-ui').appendChild(renderer.domElement);
-
-            world = new CANNON.World();
-            world.gravity.set(0, -35, 0);
-
-            // Освещение (Солнечный день)
-            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-            scene.add(hemiLight);
-            const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-            sun.position.set(100, 200, 50);
-            sun.castShadow = true;
-            sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
-            sun.shadow.camera.left = -100; sun.shadow.camera.right = 100;
-            sun.shadow.camera.top = 100; sun.shadow.camera.bottom = -100;
-            scene.add(sun);
-
-            createDust2Map();
-            setupPhysics();
-            buildDetailedWeapon();
-
-            clock = new THREE.Clock();
-            animate();
-        }
-
-        function createDust2Map() {
-            const tGrid = createTexture('grid'); tGrid.repeat.set(20, 20);
-            const tSand = createTexture('sand'); tSand.repeat.set(4, 4);
-            const tCrate = createTexture('crate');
-            
-            // Земля
-            const groundMat = new THREE.MeshStandardMaterial({ map: tGrid, roughness: 0.9 });
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), groundMat);
-            ground.rotation.x = -Math.PI/2;
-            ground.receiveShadow = true;
-            scene.add(ground);
-
-            const gBody = new CANNON.Body({ mass: 0 });
-            gBody.addShape(new CANNON.Plane());
-            gBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2);
-            world.addBody(gBody);
-
-            // Стены и укрытия
-            const geoWall = new THREE.BoxGeometry(1,1,1);
-            const matWall = new THREE.MeshStandardMaterial({ map: tSand, roughness: 1.0 });
-            const matCrate = new THREE.MeshStandardMaterial({ map: tCrate });
-
-            const mapObjects = [
-                // Границы
-                {p: [0, 10, -80], s: [160, 20, 4], m: matWall},
-                {p: [0, 10, 80], s: [160, 20, 4], m: matWall},
-                {p: [80, 10, 0], s: [4, 20, 160], m: matWall},
-                {p: [-80, 10, 0], s: [4, 20, 160], m: matWall},
-                
-                // Центр мид
-                {p: [-20, 5, 0], s: [40, 10, 6], m: matWall},
-                {p: [30, 5, 0], s: [20, 10, 6], m: matWall},
-                
-                // Ящики
-                {p: [10, 3, -30], s: [6, 6, 6], m: matCrate},
-                {p: [16, 3, -30], s: [6, 6, 6], m: matCrate},
-                {p: [13, 9, -30], s: [6, 6, 6], m: matCrate},
-                {p: [-40, 4, 30], s: [8, 8, 8], m: matCrate},
-                {p: [0, 2, 20], s: [4, 4, 4], m: matCrate}
-            ];
-
-            mapObjects.forEach(obj => {
-                const mesh = new THREE.Mesh(geoWall, obj.m);
-                mesh.scale.set(...obj.s);
-                mesh.position.set(...obj.p);
-                mesh.castShadow = true; mesh.receiveShadow = true;
-                scene.add(mesh);
-                
-                const body = new CANNON.Body({ mass: 0 });
-                body.addShape(new CANNON.Box(new CANNON.Vec3(obj.s[0]/2, obj.s[1]/2, obj.s[2]/2)));
-                body.position.set(...obj.p);
-                world.addBody(body);
-            });
-        }
-
-        function setupPhysics() {
-            playerBody = new CANNON.Body({ mass: 85, fixedRotation: true, linearDamping: 0.9 });
-            playerBody.addShape(new CANNON.Sphere(1.4)); // Хитбокс игрока
-            playerBody.position.set(0, 5, 60); // Спавн
-            world.addBody(playerBody);
-        }
-
-        // --- СОЗДАНИЕ ДЕТАЛИЗИРОВАННОГО ОРУЖИЯ ---
-        function buildDetailedWeapon() {
-            if(weaponGroup) camera.remove(weaponGroup);
-            weaponGroup = new THREE.Group();
-            
-            const wepData = WEAPONS[player.currentWeapon];
-            const skin = player.equipped[player.currentWeapon];
-            const colorMain = skin ? skin.color : wepData.color;
-
-            const matDark = new THREE.MeshStandardMaterial({color: 0x111111, metalness: 0.6, roughness: 0.4});
-            const matSkin = new THREE.MeshStandardMaterial({color: colorMain, metalness: 0.3, roughness: 0.5});
-
-            if(wepData.model === 'assault' || wepData.model === 'sniper') {
-                // Ствольная коробка
-                const body = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 0.5), matDark);
-                weaponGroup.add(body);
-                
-                // Цевье/Скин
-                const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.1, 0.3), matSkin);
-                handguard.position.set(0, -0.02, -0.2);
-                weaponGroup.add(handguard);
-
-                // Ствол
-                const barrelLen = wepData.model === 'sniper' ? 0.8 : 0.4;
-                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, barrelLen, 8), matDark);
-                barrel.rotation.x = Math.PI/2;
-                barrel.position.set(0, 0.02, wepData.model === 'sniper' ? -0.5 : -0.4);
-                weaponGroup.add(barrel);
-
-                // Магазин
-                const mag = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.2, 0.1), matDark);
-                mag.position.set(0, -0.15, -0.05);
-                mag.rotation.x = 0.2;
-                weaponGroup.add(mag);
-
-                // Приклад
-                const stock = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, 0.25), matSkin);
-                stock.position.set(0, -0.05, 0.3);
-                weaponGroup.add(stock);
-                
-                weaponGroup.position.set(0.35, -0.35, -0.6);
-            } else if(wepData.model === 'pistol') {
-                const body = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.1, 0.35), matSkin);
-                const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.15, 0.1), matDark);
-                grip.position.set(0, -0.1, 0.1);
-                grip.rotation.x = 0.2;
-                weaponGroup.add(body, grip);
-                weaponGroup.position.set(0.3, -0.25, -0.5);
-            }
-
-            muzzleFlash = new THREE.PointLight(0xffaa00, 0, 10);
-            muzzleFlash.position.set(0, 0.02, -0.6);
-            weaponGroup.add(muzzleFlash);
-
-            camera.add(weaponGroup);
-        }
-
-        // --- ИГРОВАЯ ЛОГИКА (БОТЫ И СТРЕЛЬБА) ---
-        function startGame(mode) {
-            initEngine();
-            isRunning = true;
-            isMultiplayer = (mode === 'online');
-            
-            player.hp = 100;
-            player.ammo = WEAPONS[player.currentWeapon].clip;
-            player.reserve = WEAPONS[player.currentWeapon].res;
-            
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('hud').classList.remove('hidden');
-            document.getElementById('crosshair').style.display = 'flex';
-            document.getElementById('server-status').innerText = isMultiplayer ? 'SERVER: ONLINE P2P' : 'SERVER: LOCAL BOTS';
-            document.body.requestPointerLock();
-            
-            buildDetailedWeapon();
-            updateHUD();
-            
-            // Зачистка ботов
-            bots.forEach(b => { scene.remove(b.mesh); world.remove(b.body); });
-            bots = [];
-            
-            // Если выбран режим с ботами - спавним их
-            if(mode === 'bots') {
-                for(let i=0; i<6; i++) spawnBot();
-            }
-        }
-
-        function spawnBot() {
-            if(!scene) return;
-            const group = new THREE.Group();
-            
-            // Тело
-            const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.0, 1.2), new THREE.MeshStandardMaterial({color: 0x4a4a5a}));
-            bodyMesh.position.y = 1.0;
-            bodyMesh.castShadow = true;
-            group.add(bodyMesh);
-
-            // Голова
-            const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), new THREE.MeshStandardMaterial({color: 0xeebb99}));
-            headMesh.position.set(0, 2.4, 0);
-            headMesh.castShadow = true;
-            group.add(headMesh);
-
-            // Оружие в руках бота
-            const gunMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.15, 0.6), new THREE.MeshStandardMaterial({color: 0x111}));
-            gunMesh.position.set(0.5, 1.2, -0.5);
-            group.add(gunMesh);
-
-            const phys = new CANNON.Body({ mass: 1, fixedRotation: true, linearDamping: 0.9 });
-            phys.addShape(new CANNON.Sphere(1.4));
-            
-            // Спавним подальше от игрока
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 30 + Math.random() * 40;
-            phys.position.set(Math.cos(angle)*dist, 10, -20 + Math.sin(angle)*dist);
-            
-            scene.add(group);
-            world.addBody(phys);
-            bots.push({mesh: group, body: phys, hp: 100, lastShoot: 0, wMesh: gunMesh});
-        }
-
-        function createTracer(start, end, color) {
-            const mat = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: 0.8});
-            const dist = start.distanceTo(end);
-            const geo = new THREE.CylinderGeometry(0.03, 0.03, dist, 4);
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.copy(start).add(end).multiplyScalar(0.5);
-            mesh.lookAt(end);
-            mesh.rotation.x += Math.PI/2;
-            scene.add(mesh);
-            tracers.push({mesh, age: 0, max: 5});
-        }
-
-        // Вспомогательная функция для проверки попадания (с учетом вложенности объектов в THREE.Group)
-        function isHitTarget(mesh, targetGroup) {
-            let obj = mesh;
-            while(obj && obj !== scene) {
-                if(obj === targetGroup) return true;
-                obj = obj.parent;
-            }
-            return false;
-        }
-
-        function shoot() {
-            const now = Date.now();
-            const wep = WEAPONS[player.currentWeapon];
-            if(now - lastShootTime < wep.rate || player.ammo <= 0) return;
-            
-            player.ammo--;
-            lastShootTime = now;
-            updateHUD();
-            
-            // Отдача и расширение прицела
-            camera.rotation.x += wep.recoil;
-            weaponGroup.position.z += 0.15;
-            muzzleFlash.intensity = 10; setTimeout(()=>muzzleFlash.intensity=0, 50);
-            
-            const crossLines = ['#ch-t', '#ch-b', '#ch-l', '#ch-r'];
-            const expand = [ -10, 10, -10, 10 ];
-            crossLines.forEach((id, i) => {
-                const axis = i < 2 ? 'Y' : 'X';
-                document.querySelector(id).style.transform = `translate${axis}(${expand[i]}px)`;
-            });
-            setTimeout(() => {
-                const base = [ -2, -2, -2, -2 ];
-                crossLines.forEach((id, i) => {
-                    const axis = i < 2 ? 'Y' : 'X';
-                    document.querySelector(id).style.transform = `translate${axis}(${base[i]}px)`;
-                });
-            }, 100);
-
-            // Рейкаст
-            const ray = new THREE.Raycaster();
-            const disp = wep.recoil * 0.5;
-            ray.setFromCamera(new THREE.Vector2((Math.random()-0.5)*disp, (Math.random()-0.5)*disp), camera);
-            
-            let hitPoint = new THREE.Vector3();
-            const intersects = ray.intersectObjects(scene.children, true);
-            const validHits = intersects.filter(h => !isHitTarget(h.object, weaponGroup));
-            
-            if(validHits.length > 0) {
-                hitPoint.copy(validHits[0].point);
-                const target = validHits[0].object;
-                
-                // Проверка попадания по ботам
-                bots.forEach((bot, idx) => {
-                    if(isHitTarget(target, bot.mesh)) {
-                        bot.hp -= wep.damage;
-                        showHitMarker();
-                        if(bot.hp <= 0) {
-                            scene.remove(bot.mesh); world.remove(bot.body); bots.splice(idx, 1);
-                            player.cash += 300; updateHUD(); showKill("ВЫ", "БОТ", wep.name);
-                            setTimeout(spawnBot, 2500);
-                        }
-                    }
-                });
-
-                // Сетевая отправка
-                if(isMultiplayer && conn && conn.open) {
-                    let hitNet = false;
-                    if(remotePlayers['enemy'] && isHitTarget(target, remotePlayers['enemy'])) {
-                        hitNet = true; showHitMarker();
-                    }
-                    conn.send({type: 'shot', hit: hitNet, tx: hitPoint.x, ty: hitPoint.y, tz: hitPoint.z});
-                }
-            } else {
-                const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
-                hitPoint.copy(camera.position).add(dir.multiplyScalar(100));
-                if(isMultiplayer && conn && conn.open) conn.send({type: 'shot', hit: false, tx: hitPoint.x, ty: hitPoint.y, tz: hitPoint.z});
-            }
-
-            const mPos = new THREE.Vector3(); muzzleFlash.getWorldPosition(mPos);
-            createTracer(mPos, hitPoint, 0xffff00);
-        }
-
-        // --- МУЛЬТИПЛЕЕР (PEERJS) ---
-        function initPeer() {
-            peer = new Peer();
-            peer.on('open', id => { document.getElementById('my-peer-id').innerText = id; });
-            peer.on('connection', c => {
-                conn = c;
-                setupNetwork();
-                startGame('online');
-            });
-        }
-
-        function connectToPeer() {
-            const targetId = document.getElementById('friend-id-input').value.trim();
-            if(!targetId) return;
-            if(!peer) initPeer();
-            conn = peer.connect(targetId);
-            conn.on('open', () => {
-                setupNetwork();
-                startGame('online');
-            });
-        }
-
-        function setupNetwork() {
-            conn.on('data', data => {
-                if(!scene) return;
-                if(data.type === 'pos') {
-                    if(!remotePlayers['enemy']) {
-                        const m = new THREE.Group();
-                        const b = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.0, 1.2), new THREE.MeshStandardMaterial({color: 0x3b82f6})); b.position.y=1;
-                        const h = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), new THREE.MeshStandardMaterial({color: 0xeebb99})); h.position.set(0,2.4,0);
-                        m.add(b, h);
-                        scene.add(m);
-                        remotePlayers['enemy'] = m;
-                    }
-                    remotePlayers['enemy'].position.set(data.x, data.y, data.z);
-                    remotePlayers['enemy'].lookAt(data.rx, data.y, data.rz);
-                }
-                if(data.type === 'shot') {
-                    if(remotePlayers['enemy']) {
-                        const start = new THREE.Vector3().copy(remotePlayers['enemy'].position).add(new THREE.Vector3(0, 1.5, 0));
-                        const end = new THREE.Vector3(data.tx, data.ty, data.tz);
-                        createTracer(start, end, 0xff0000);
-                    }
-                    if(data.hit) {
-                        applyDamage(35);
-                    }
-                }
+            // Убираем у всех класс 'active' (скрываем их)
+            screens.forEach(screen => {
+                screen.classList.remove('active');
             });
 
-            conn.on('close', () => {
-                if(remotePlayers['enemy']) {
-                    scene.remove(remotePlayers['enemy']);
-                    delete remotePlayers['enemy'];
-                }
-            });
+            // Добавляем класс 'active' только нужному экрану (показываем его)
+            document.getElementById(screenId).classList.add('active');
         }
-
-        // --- УТИЛИТЫ И ИНТЕРФЕЙС ---
-        function applyDamage(amount) {
-            if(player.armor > 0) {
-                player.armor -= amount * 0.5; player.hp -= amount * 0.5;
-                if(player.armor < 0) { player.hp += player.armor; player.armor = 0; }
-            } else {
-                player.hp -= amount;
-            }
-            updateHUD();
-            const f = document.getElementById('damage-flash');
-            f.style.opacity = '1'; setTimeout(() => f.style.opacity = '0', 150);
-            if(player.hp <= 0) exitToMenu();
-        }
-
-        function showHitMarker() {
-            const hm = document.getElementById('hit-marker');
-            hm.style.animation = 'none'; void hm.offsetWidth;
-            hm.style.animation = 'popHit 0.3s ease-out forwards';
-        }
-
-        function showKill(k, v, w) {
-            const feed = document.getElementById('kill-feed');
-            const div = document.createElement('div');
-            div.className = 'cs-panel px-4 py-2 flex gap-3 text-sm font-black italic border-r-4 border-orange-500 bg-black/60 items-center';
-            div.innerHTML = `<span class="text-blue-400">${k}</span> <span class="text-[10px] text-slate-400">(${w})</span> 🔫 <span class="text-red-500">${v}</span>`;
-            feed.appendChild(div);
-            setTimeout(() => div.remove(), 4000);
-        }
-
-        function updateHUD() {
-            document.getElementById('hp-hud').innerText = Math.max(0, Math.ceil(player.hp));
-            document.getElementById('armor-hud').innerText = Math.ceil(player.armor);
-            document.getElementById('cash-hud').innerText = player.cash;
-            document.getElementById('shop-balance').innerText = player.cash;
-            document.getElementById('menu-balance').innerText = player.cash;
-            document.getElementById('ammo-hud').innerText = player.ammo;
-            document.getElementById('res-hud').innerText = player.reserve;
-            
-            const wep = WEAPONS[player.currentWeapon];
-            const skin = player.equipped[player.currentWeapon];
-            document.getElementById('wep-name-hud').innerText = skin ? skin.name : wep.name;
-        }
-
-        // --- МЕНЮ КОНТРОЛЛЕР ---
-        function toggleTab(id) {
-            document.getElementById('tab-welcome').classList.add('hidden');
-            ['market', 'inv', 'cases', 'lobby'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
-            document.getElementById('tab-'+id).classList.remove('hidden');
-            if(id === 'market') renderMarket();
-            if(id === 'inv') renderInv();
-            if(id === 'cases') prepareCase();
-        }
-
-        function openLobby() { toggleTab('lobby'); if(!peer) initPeer(); }
-
-        function renderMarket() {
-            const list = document.getElementById('market-list');
-            list.innerHTML = SKINS.map(s => `
-                <div class="cs-panel p-6 flex flex-col justify-between border-b-8 rarity-${s.rarity} hover:scale-[1.02] transition-transform">
-                    <div class="font-black italic uppercase text-[10px] opacity-70 mb-1">${s.rarity}</div>
-                    <div class="font-black text-lg mb-6">${s.name}</div>
-                    <button type="button" onclick="buySkin('${s.id}')" class="w-full py-3 bg-green-600 hover:bg-green-500 rounded font-black text-sm uppercase transition-colors">$${s.price}</button>
-                </div>
-            `).join('');
-        }
-
-        function buySkin(id) {
-            const s = SKINS.find(x => x.id === id);
-            if(player.cash >= s.price) {
-                player.cash -= s.price;
-                player.inventory.push(s);
-                updateHUD(); renderMarket();
-            }
-        }
-
-        function renderInv() {
-            const list = document.getElementById('inv-list');
-            list.innerHTML = player.inventory.map(s => `
-                <div class="cs-panel p-4 text-center cursor-pointer border-b-4 rarity-${s.rarity} ${player.equipped[s.type]?.id === s.id ? 'bg-orange-500/10 border-white' : ''} hover:bg-white/5 transition-colors" 
-                     onclick="equipSkin('${s.id}')">
-                    <div class="text-[9px] font-black uppercase opacity-50 mb-2">${s.type}</div>
-                    <div class="text-xs font-black uppercase truncate">${s.name.split('|')[1] || s.name}</div>
-                    ${player.equipped[s.type]?.id === s.id ? '<div class="text-[8px] text-orange-500 font-bold mt-2 uppercase">Экипировано</div>' : ''}
-                </div>
-            `).join('');
-        }
-
-        function equipSkin(id) {
-            const s = player.inventory.find(x => x.id === id);
-            player.equipped[s.type] = s;
-            if(isRunning) buildDetailedWeapon();
-            renderInv();
-        }
-
-        // --- КЕЙСЫ ---
-        function prepareCase() {
-            const reel = document.getElementById('case-reel');
-            reel.style.transition = 'none';
-            reel.style.transform = 'translateX(0)';
-            reel.innerHTML = '';
-            for(let i=0; i<80; i++) {
-                const s = SKINS[Math.floor(Math.random()*SKINS.length)];
-                const item = document.createElement('div');
-                item.className = `case-item rarity-${s.rarity}`;
-                item.innerHTML = `<div class="text-[10px] font-bold opacity-50 uppercase mb-2">${s.type}</div><div class="text-xs font-black uppercase p-1">${s.name.split('|')[1] || s.name}</div>`;
-                reel.appendChild(item);
-            }
-        }
-
-        function openCase() {
-            if(player.cash < 250) return;
-            player.cash -= 250;
-            updateHUD();
-            
-            const reel = document.getElementById('case-reel');
-            const btn = document.getElementById('spin-btn');
-            btn.disabled = true;
-            
-            const itemWidth = 160; // 150 width + 10 margin
-            const winIndex = 60;
-            const stopPos = (winIndex * itemWidth) + (Math.random() * itemWidth) - (itemWidth/2);
-            
-            reel.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.05, 1)';
-            reel.style.transform = `translateX(-${stopPos}px)`;
-            
-            setTimeout(() => {
-                const rand = Math.random();
-                let won;
-                if(rand > 0.99) won = SKINS.find(s=>s.rarity==='gold');
-                else if(rand > 0.90) won = SKINS.find(s=>s.rarity==='covert');
-                else if(rand > 0.60) won = SKINS.find(s=>s.rarity==='classified');
-                else won = SKINS.find(s=>s.rarity==='restricted');
-                
-                if(!won) won = SKINS[3];
-                
-                player.inventory.push(won);
-                btn.disabled = false;
-                updateHUD();
-                toggleTab('inv');
-            }, 6500);
-        }
-
-        // --- ВНУТРИИГРОВОЙ МАГАЗИН ---
-        function openShop() { isShopOpen = true; document.exitPointerLock(); document.getElementById('ingame-shop').classList.remove('hidden'); }
-        function closeShop() { isShopOpen = false; document.body.requestPointerLock(); document.getElementById('ingame-shop').classList.add('hidden'); }
-
-        function buyWeapon(id, price) {
-            if(player.cash >= price) {
-                player.cash -= price;
-                player.currentWeapon = id;
-                player.ammo = WEAPONS[id].clip;
-                player.reserve = WEAPONS[id].res;
-                buildDetailedWeapon();
-                updateHUD();
-                closeShop();
-            }
-        }
-
-        function buyGear(type, price) {
-            if(player.cash >= price) {
-                player.cash -= price;
-                if(type === 'armor') player.armor = 100;
-                if(type === 'health') player.hp = 100;
-                if(type === 'ammo') { player.reserve += 90; player.ammo = WEAPONS[player.currentWeapon].clip; }
-                updateHUD();
-                closeShop();
-            }
-        }
-
-        function exitToMenu() {
-            isRunning = false;
-            document.exitPointerLock();
-            document.getElementById('main-menu').classList.remove('hidden');
-            document.getElementById('hud').classList.add('hidden');
-            document.getElementById('crosshair').style.display = 'none';
-        }
-
-        // --- ЦИКЛ РЕНДЕРА ---
-        function animate() {
-            requestAnimationFrame(animate);
-            if(!isRunning || !scene) return;
-            
-            const dt = clock.getDelta();
-            world.step(1/60, dt, 3);
-            
-            for(let i=tracers.length-1; i>=0; i--) {
-                tracers[i].age++;
-                tracers[i].mesh.material.opacity = 1 - (tracers[i].age/tracers[i].max);
-                if(tracers[i].age >= tracers[i].max) { scene.remove(tracers[i].mesh); tracers.splice(i,1); }
-            }
-
-            if(!isShopOpen) {
-                const wep = WEAPONS[player.currentWeapon];
-                const moveSpeed = 25 * (wep.model === 'sniper' ? 0.8 : 1.0);
-                const yaw = camera.rotation.y;
-                playerBody.velocity.x *= 0.85;
-                playerBody.velocity.z *= 0.85;
-
-                if(keys['KeyW']) { playerBody.velocity.x -= Math.sin(yaw)*moveSpeed*dt*60; playerBody.velocity.z -= Math.cos(yaw)*moveSpeed*dt*60; }
-                if(keys['KeyS']) { playerBody.velocity.x += Math.sin(yaw)*moveSpeed*dt*60; playerBody.velocity.z += Math.cos(yaw)*moveSpeed*dt*60; }
-                if(keys['KeyA']) { playerBody.velocity.x -= Math.cos(yaw)*moveSpeed*dt*60; playerBody.velocity.z += Math.sin(yaw)*moveSpeed*dt*60; }
-                if(keys['KeyD']) { playerBody.velocity.x += Math.cos(yaw)*moveSpeed*dt*60; playerBody.velocity.z -= Math.sin(yaw)*moveSpeed*dt*60; }
-                
-                if(keys['Space'] && Math.abs(playerBody.velocity.y) < 0.2) { playerBody.velocity.y = 14; }
-            }
-
-            camera.position.copy(playerBody.position);
-            camera.position.y += 1.4; // Уровень глаз
-            
-            if(weaponGroup) {
-                weaponGroup.position.z = THREE.MathUtils.lerp(weaponGroup.position.z, -0.6, 0.1);
-                const isMoving = Math.abs(playerBody.velocity.x) > 1 || Math.abs(playerBody.velocity.z) > 1;
-                weaponGroup.position.y = isMoving ? -0.35 + Math.sin(Date.now()*0.01)*0.02 : -0.35;
-            }
-
-            const now = Date.now();
-            
-            if(!isMultiplayer) {
-                bots.forEach(b => {
-                    b.mesh.position.copy(b.body.position);
-                    b.mesh.lookAt(playerBody.position.x, b.body.position.y, playerBody.position.z);
-                    
-                    const dist = b.body.position.distanceTo(playerBody.position);
-                    if(dist < 50) {
-                        const dir = new CANNON.Vec3();
-                        playerBody.position.vsub(b.body.position, dir);
-                        dir.y = 0; dir.normalize();
-                        
-                        if(dist > 15) {
-                            b.body.velocity.x = dir.x * 10;
-                            b.body.velocity.z = dir.z * 10;
-                        }
-
-                        if(now - b.lastShoot > 1200) {
-                            b.lastShoot = now + Math.random()*500;
-                            
-                            const gunPos = new THREE.Vector3().copy(b.body.position).add(new THREE.Vector3(0, 1.2, 0));
-                            let targetPos = new THREE.Vector3().copy(playerBody.position);
-                            
-                            if(Math.random() > 0.4) {
-                                applyDamage(10);
-                            } else {
-                                targetPos.add(new THREE.Vector3((Math.random()-0.5)*5, (Math.random()-0.5)*5, (Math.random()-0.5)*5));
-                            }
-                            createTracer(gunPos, targetPos, 0xff0000);
-                        }
-                    }
-                });
-            }
-
-            if(isMultiplayer && conn && conn.open && Math.floor(now/16)%2===0) {
-                const t = new THREE.Vector3(); camera.getWorldDirection(t);
-                t.multiplyScalar(10).add(camera.position);
-                conn.send({type:'pos', x:playerBody.position.x, y:playerBody.position.y, z:playerBody.position.z, rx:t.x, rz:t.z});
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        // --- СОБЫТИЯ ---
-        window.addEventListener('keydown', e => {
-            keys[e.code] = true;
-            if(e.code === 'KeyB' && isRunning) isShopOpen ? closeShop() : openShop();
-            if(e.code === 'KeyM' && isRunning && !isShopOpen) exitToMenu();
-            if(e.code === 'Escape' && isShopOpen) closeShop();
-            if(e.code === 'KeyR' && isRunning && !isShopOpen) {
-                const max = WEAPONS[player.currentWeapon].clip;
-                const need = max - player.ammo;
-                if(need > 0 && player.reserve > 0) {
-                    const take = Math.min(need, player.reserve);
-                    player.ammo += take; player.reserve -= take;
-                    updateHUD();
-                }
-            }
-        });
-        window.addEventListener('keyup', e => keys[e.code] = false);
-        window.addEventListener('mousedown', e => { if(isRunning && !isShopOpen && document.pointerLockElement && e.button===0) shoot(); });
-        window.addEventListener('mousemove', e => {
-            if(!isRunning || !document.pointerLockElement || isShopOpen) return;
-            camera.rotation.y -= e.movementX * 0.002;
-            camera.rotation.x -= e.movementY * 0.002;
-            camera.rotation.x = Math.max(-1.4, Math.min(1.4, camera.rotation.x));
-        });
-        window.addEventListener('resize', () => {
-            if(camera && renderer) {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-        });
-        
-        window.oncontextmenu = (e) => e.preventDefault();
-
-        // Запуск UI
-        updateHUD();
-        document.getElementById('menu-balance').innerText = player.cash;
-        renderMarket();
-        renderInv();
-
     </script>
 </body>
 </html>
